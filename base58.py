@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # coding: utf8
-from binascii import hexlify, unhexlify, b2a_hex
+
 import hashlib
-import struct
-import pdb
+from binascii import hexlify, unhexlify, b2a_hex
+from constants import *
 
 alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 len58 = len(alphabet)
@@ -71,16 +71,17 @@ def base58check_decode(string: str) ->bytes:
     assert(check_sum == real_check_sum)
     return ret[one_more_times:]
 
-def hash_to_scriptPubKey(b58str):
-    assert(len(b58str) == 34)
-    decoded_b58str = base58check_decode(b58str)
-    # 76     A9      14 (20 bytes)  
+def address_to_scriptPubKey(b58_str):
+    assert len(b58_str) == 34
+    decoded_b58str = base58check_decode(b58_str)
     if len(decoded_b58str) > 20:
         decoded_b58str = decoded_b58str[1:]
     if len(decoded_b58str) > 20:
         decoded_b58str = decoded_b58str[:20 - len(decoded_b58str)]
-    # 测试网络需要去掉\x6f                            88             AC
-    return '76a914' + decoded_b58str.hex() + '88ac'
+    # 测试网络需要去掉\x6f     
+    # 一定是20字节
+    assert len(decoded_b58str) == 20
+    return OP_DUP + OP_HASH160 + '14' + decoded_b58str.hex() + OP_EQUALVERIFY + OP_CHECKSIG
 
 if __name__ == '__main__':
     print(base58check_decode('2Myz4PFLijNPUquXonEcPMRXjDx6UiJGVbw').hex())

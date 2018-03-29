@@ -3,7 +3,6 @@
 
 from constants import *
 import struct
-import utxos
 import sign
 import sys
 import base58
@@ -76,10 +75,12 @@ def main():
     # 0.1 fee
     send_amount = total_amount - Decimal(0.1)
     outputs = [{send_to_address: float(send_amount)}]
+    # 创建交易
     predict_rawTransaction = rpc_server.createrawtransaction(inputTransactionHash, outputs, 0)
     print("bitcoin-cli -testnet createrawtransaction '" + json.dumps(inputTransactionHash) + "' '" + json.dumps(outputs) + "' 0")
     
     rawTransaction = makeRawTransaction(inputTransactionHash, scriptSig, outputs)
+    rawTransaction = rawTransaction.lower()
 
     # print(rawTransaction)
 
@@ -90,17 +91,10 @@ def main():
         sys.exit(' raw transaction is not correct: %s\nCompare correct raw transaction: %s' % (rawTransaction, real_rawTransction))
 
     print('raw transaction:', rawTransaction)
-    scriptSig = base58.hash_to_scriptPubKey(bitcoin_address)
-    address_info = rpc_server.getaddressinfo(bitcoin_address)
-    real_scriptSig = address_info['scriptPubKey']
+    scriptPubKey = base58.address_to_scriptPubKey(bitcoin_address)
 
-    try:
-        assert scriptSig == real_scriptSig
-    except:
-        sys.exit('incorrect: %s\n  correct: %s' % (scriptSig, real_scriptSig))
-
-    scriptSig = varstr(unhexlify(scriptSig)).hex()
-    rawTransaction_for_sign = makeRawTransaction(inputTransactionHash, scriptSig, outputs)
+    scriptPubKey = varstr(unhexlify(scriptPubKey)).hex()
+    rawTransaction_for_sign = makeRawTransaction(inputTransactionHash, scriptPubKey, outputs)
     rawTransaction_for_sign += SIGN_ALL
     print('raw transaction for sign:', rawTransaction_for_sign)
     scriptSig = signRawTransaction(rawTransaction_for_sign, private_key)
@@ -132,7 +126,7 @@ def makeRawTransaction(inputTransactionHash, scriptSig, outputs):
     def makeOutput(data):
         for outputAddress, redemptionSatoshis in data.items():
             pass
-        scriptSig = base58.hash_to_scriptPubKey(outputAddress)
+        scriptSig = base58.address_to_scriptPubKey(outputAddress)
         return (
             # 以satoshi为单位，所以要乘以10**6
             struct.pack("<Q", int(Decimal(str(redemptionSatoshis)) * 100000000)).hex() +
@@ -208,7 +202,7 @@ def varstr(s: bytes) ->bytes:
 def parseTxn(txn):
     first = txn[0:41 * 2]
     script_len = int(txn[41 * 2:42 * 2], 16)
-    script = txn[42 * 2: 42 * 2 + 2 * script_en]
+    script = txn[42 * 2: 42 * 2 + 2 * script_len]
     sig_len = int(script[0:2], 16)
     sig = script[2:2 + sig_len * 2]
     pub_len = int(script[2 + sig_len * 2:2 + sig_len * 2 + 2], 16)
