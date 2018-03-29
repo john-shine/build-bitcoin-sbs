@@ -146,13 +146,13 @@ def makeRawTransaction(inputTransactionHash, scriptSig, outputs):
             unhexlify(tx_hash)[::-1].hex() + # reverse inputTransactionHash
             struct.pack('<L', tx_index).hex() +
             scriptSig + # scriptSig
-            "ffffffff" # sequence
+            SEQUENCE
         )
 
     ret += ( #'%02x' % len(unhexlify(scriptSig)) + # script length
         "%02x" % len(outputs) + # number of outputs
         formattedOutputs +
-        "00000000" # lockTime
+        LOCKTIME
     )
 
     return ret
