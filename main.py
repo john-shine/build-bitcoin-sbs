@@ -168,7 +168,6 @@ def signRawTransaction(rawTransaction, private_key):
     double_hash = hashlib.sha256(hashlib.sha256(unhexlify(rawTransaction)).digest()).digest()
     # 使用私钥加密
     print('double hash:', double_hash.hex())
-    # private_key = '5HvofFG7K1e2aeWESm5pbCzRHtCSiZNbfLYXBvxyA57DhKHV4U3'
     decoded_secrect = base58.base58check_decode(private_key)
     # 私钥长度必定是32个字节
     # 新私钥33个字节需要去掉后面的区分位
@@ -186,10 +185,9 @@ def signRawTransaction(rawTransaction, private_key):
     print('public key:', public_key)
     # scriptSig: hex str
     scriptSig = varstr(DER_encode).hex() + varstr(unhexlify(public_key)).hex()
-    # final_scriptSig = (len(EDR_sign) + 1) + EDR_sign + hash_code_type + OPCODE + len(public_key) + public_key
-    return varstr(unhexlify(scriptSig)).hex()
+    final_scriptSig = varstr(unhexlify(scriptSig)).hex()
+    return final_scriptSig
 
-    # return replaceRawTransaction(rawTransaction, final_scriptSig)
 
 # Returns byte string value, not hex string
 def varint(n):
@@ -209,15 +207,15 @@ def varstr(s: bytes) ->bytes:
 # param str txn: hex格式
 def parseTxn(txn):
     first = txn[0:41 * 2]
-    scriptLen = int(txn[41 * 2:42 * 2], 16)
-    script = txn[42 * 2: 42 * 2+2*scriptLen]
-    sigLen = int(script[0:2], 16)
-    sig = script[2:2 + sigLen*2]
-    pubLen = int(script[2 + sigLen*2:2+sigLen*2+2], 16)
-    pub = script[2 + sigLen * 2 + 2:]
+    script_len = int(txn[41 * 2:42 * 2], 16)
+    script = txn[42 * 2: 42 * 2 + 2 * script_en]
+    sig_len = int(script[0:2], 16)
+    sig = script[2:2 + sig_len * 2]
+    pub_len = int(script[2 + sig_len * 2:2 + sig_len * 2 + 2], 16)
+    pub = script[2 + sig_len * 2 + 2:]
             
-    assert(len(pub) == pubLen*2)
-    rest = txn[42*2+2*scriptLen:]
+    assert(len(pub) == pub_len*2)
+    rest = txn[42 * 2 + 2 * script_len:]
     return [first, sig, pub, rest] 
 
 # Substitutes the scriptPubKey into the transaction, appends SIGN_ALL to make the version
@@ -239,15 +237,17 @@ def derSigToHexSig(s):
     y, s = ecdsa.der.remove_integer(s)
     return '%064x%064x' % (x, y)
 
+# 校验签名之后的交易数据格式
 def verifyTransactionSign(txn):
-    parsed = parseTxn(txn)
-    signableTxn = getSignableTxn(parsed)
-    hashToSign = hashlib.sha256(hashlib.sha256(unhexlify(signableTxn)).digest()).digest().hex()
-    assert(parsed[1][-2:] == '01') # hash type
-    sig = derSigToHexSig(parsed[1][:-2])
-    public_key = parsed[2]
-    vk = ecdsa.VerifyingKey.from_string(unhexlify(public_key[2:]), curve=ecdsa.SECP256k1)
-    assert(vk.verify_digest(unhexlify(sig), unhdexlify(hashToSign)))
+    parsed_txn = parseTxn(txn)
+    signable_txn = getSignableTxn(parsed_txn)
+    assert parsed_txn[1][-2:] == '01' # hash type
+    # @todo
+    # hashToSign = hashlib.sha256(hashlib.sha256(unhexlify(signable_txn)).digest()).digest().hex()
+    # sig = derSigToHexSig(parsed[1][:-2])
+    # public_key = parsed[2]
+    # vk = ecdsa.VerifyingKey.from_string(unhexlify(public_key[2:]), curve=ecdsa.SECP256k1)
+    # assert(vk.verify_digest(unhexlify(sig), unhdexlify(hashToSign)))
 
 if __name__ == '__main__':
     main()
