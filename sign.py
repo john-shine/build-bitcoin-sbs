@@ -105,4 +105,3 @@ def make_bitcoin_address(public_key, prefix):
     ripemd160.update(hashlib.sha256(unhexlify(public_key)).digest())
     hash160 = ripemd160.digest()
     return base58.base58check_encode(unhexlify(prefix) + hash160)
-    # return base58.base58check_encode(b'\x80' + bytes().fromhex('0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D'))

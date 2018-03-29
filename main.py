@@ -75,9 +75,10 @@ def main():
     # 0.1 fee
     send_amount = total_amount - Decimal(0.1)
     outputs = [{send_to_address: float(send_amount)}]
+    print('send to address: %s, %s BTC' % (send_to_address, send_amount))
     # 创建交易
     predict_rawTransaction = rpc_server.createrawtransaction(inputTransactionHash, outputs, 0)
-    print("bitcoin-cli -testnet createrawtransaction '" + json.dumps(inputTransactionHash) + "' '" + json.dumps(outputs) + "' 0")
+    # print("bitcoin-cli -testnet createrawtransaction '" + json.dumps(inputTransactionHash) + "' '" + json.dumps(outputs) + "' 0")
     
     rawTransaction = makeRawTransaction(inputTransactionHash, scriptSig, outputs)
     rawTransaction = rawTransaction.lower()
@@ -126,12 +127,12 @@ def makeRawTransaction(inputTransactionHash, scriptSig, outputs):
     def makeOutput(data):
         for outputAddress, redemptionSatoshis in data.items():
             pass
-        scriptSig = base58.address_to_scriptPubKey(outputAddress)
+        scriptPubKey = base58.address_to_scriptPubKey(outputAddress)
         return (
             # 以satoshi为单位，所以要乘以10**6
             struct.pack("<Q", int(Decimal(str(redemptionSatoshis)) * 100000000)).hex() +
-            '%02x' % len(unhexlify(scriptSig)) + 
-            scriptSig
+            '%02x' % len(unhexlify(scriptPubKey)) + 
+            scriptPubKey
         )
 
     # hex str
