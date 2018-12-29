@@ -1,7 +1,6 @@
-# build-bitcoin-sbs
-manually build Bitcoin step-by-step on binary
+# 教你创建比特币
 
-一步步创建比特币交易
+从原始字节，教你一步一步使用python创建Bitcoin. 认识区块链，从代码开始.
 
 主要分为一下步骤：
 * base58check算法的实现
@@ -11,3 +10,5 @@ manually build Bitcoin step-by-step on binary
 * 对交易签名得到scriptSig
 * 拼接成签名的完整交易
 * 广播交易到比特币p2p网络
+
+待完成中...
